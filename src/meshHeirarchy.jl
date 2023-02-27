@@ -23,18 +23,8 @@ struct MeshHierarchy
     mC::Vector{sp.SparseMatrixCSC{Float64, Int64}}
     mSmoothers::Vector{AbstractSmoother}
 
-    mInterpolation::Vector{AbstractMatrix{Float64}}
+    mInterpolation::Vector{AbstractMatrix{Float64}} # could also specify that they are sparse (don't use dense cg to dg)
     mBdConds::Vector{BoundaryCondition}
-
-    # mLBdFlag::Symbol
-    # mRBdFlag::Symbol
-    # mLDirVal::Float64
-    # mRDirVal::Float64
-    # mLNeumannVal::Float64
-    # mRNeumannVal::Float64
-
-    # mCDir::AbstractFloat
-    # mInterpFlag::Int64
 end
 
 function MeshHierarchy( mMeshes, mesh, mBdConds, A; nCG = 1, nDG = 0, nAgg = 0, 
