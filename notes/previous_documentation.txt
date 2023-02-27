@@ -1,0 +1,73 @@
+"""
+    CgElement
+
+Element in a 1-dimensional Continuous Galerkin (CG) mesh
+
+# Fields
+- `mFace::Face`: face of mesh that coincides with the CG element
+- `mP::Int64`: polynomial order of the element
+- `mGaussQuadNodes::Vector{Float64}`: nodes for Gaussian quadrature
+- `mGaussQuadWeights::Vector{Float64}`: weights corresponding to the Gaussian quadrature nodes
+- `mJacobian::Float64`: Jacobian of the element when being mapped to ``[-1,1]``
+- `mMassMatrix::Matrix{Float64}`: local mass matrix
+- `mBasisGQFunVal::Matrix{Float64}`: values of the basis functions at the Gaussian quadrature nodes
+- `mBasisGQDerivVal::Matrix{Float64}`: values of the derivatives of the basis functions at the Gaussian quadrature nodes
+- `mBdBasisFunVal::Dict{Int64, Vector{Float64}}`: values of the basis functions at the boundary of the element
+"""
+
+"""
+    CgMesh
+
+1-dimensional Continuous Galerkin (CG) mesh
+
+# Fields
+- `mElements::Vector{CgElement}`
+- `mMassMatrix::Matrix{Float64}`
+- `mA::sp.SparseMatrixCSC{Float64, Int64}`
+- `mSmoother::sp.SparseMatrixCSC{Float64, Int64}`
+- `mL::AbstractMatrix{Float64}`
+"""
+
+
+"""
+    AgglomeratedDgElement1
+
+Agglomerated DG Element in first level of agglomeration of a 1-dimensional Continuous Galerkin (CG) mesh
+
+# Fields
+- `mSubElementInds::Vector{Int64}`
+- `mCgElementInds::Vector{Int64}`
+- `mMassMatrix::Matrix{Float64}`
+- `mBasisGQFunVal::Dict{Int64, Matrix{Float64}}`
+- `mBasisDerivVal::Vector{Float64}`
+- `mBd::Vector{Vertex}`
+- `mBdBasisFunVal::Dict{Int64, Matrix{Float64}}`
+"""
+
+"""
+    AgglomeratedDgElementN
+
+Agglomerated DG Element in the nth level (n >= 2) of agglomeration of a 1-dimensional Continuous Galerkin (CG) mesh
+
+# Fields
+- `mSubElementInds::Vector{Int64}`
+- `mCgElementInds::Vector{Int64}`
+- `mMassMatrix::Matrix{Float64}`
+- `mBasisGQFunVal::Dict{Int64, Matrix{Float64}}`
+- `mBasisDerivVal::Vector{Float64}`
+"""
+
+"""
+    DgMesh
+
+1-dimensional Discontinuous Galerkin (DG) mesh of AgglomeratedElements
+
+# Fields
+- `mElements::Vector{AbstractAgglomeratedDgElement}`
+- `mMassMatrix::Matrix{Float64}`
+- `mG::sp.SparseMatrixCSC{Float64, Int64}`
+- `mC::sp.SparseMatrixCSC{Float64, Int64}`
+- `mA::sp.SparseMatrixCSC{Float64, Int64}`
+- `mSmoother::sp.SparseMatrixCSC{Float64, Int64}`
+- `mL::AbstractMatrix{Float64}`
+"""

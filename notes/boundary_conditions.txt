@@ -1,0 +1,23 @@
+# 1d
+# BdCnd = Vector{ Tuple{Symbol, Float64} }
+# for CG:
+# # DirNodes = Vector{Int64}
+# # DirVals = Vector{Float64}
+# # NeumannNodes = Vector{Int64}
+# for DG:
+# # DirNodes = Vector{Int64}
+# # NeumannNodes = Vector{Int64}
+
+# 2d
+# BdCnd = Vector{ Tuple{Symbol, Function } }
+# for CG:
+# # DirNodes = Vector{Int64}
+# # DirVals = Vector{Float64}
+# # NeumannEdges = Vector{Int64}
+# for DG:
+# # DirEdges = Vector{Int64}
+# # NeumannEdges = Vector{Int64}
+
+# if getting rhs without creating matrix, can loop through DirNodes/DirEdges/NeumannNodes/
+# NeumannEdges and then get the corresponding element through the vertex/edge object so 
+# that you can calculate things

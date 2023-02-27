@@ -1,0 +1,55 @@
+Questions:
+
+1. AgglomeratedDgMesh1 (the one on which I might have to construct the matrix)
+	* Question about doing edge integrals: is the search (in bdCond.mDirNodes) too expensive? Should I be scared to do something like this?
+	* Question about implementing boundary condition: With AgglomeratedDgMesh1 structure, keep edges that are actually edges. Now, the vector of edges does not correspond to the actual indices of the edges, so the boundary condition stuff is off. Thought of two fixes (?):
+		* keep all edges as one structure, and then have a vector of indices of the actual edges that matter for doing edge integrals
+			* CURRENTLY IMPLEMENTED LIKE THIS
+		* completely relabel edges and make a new boundary condition to match the relabeled edges
+
+2. Also, what is the best way to implement boundary conditions in general?
+	* Currently, just have DirNodes and NeumannNodes stored, and I have some bruteforce check to check which of the "boundaries" the node vertex is in. However, this seems to break in a 2d mesh, where there could be a lot of different boundaries, and it's hard to hardcode a check to figure out which one it is
+	* Thoughts on new implementation: 
+		* bdCond has a vector of boundaries (which are symbol, function pairs)
+		* then, it should have a vector dirBds, which takes the indices of the dirBoundaries
+		* also has a vector of neuBds, which takes the indices of the neumannBoundaries
+		* Then, it has bdEdgeInds, a vector of vectors of integers (the interior vectors are vectors of indices of edges in that boundary)
+			* then implementation can be: go through each boundary, and then go through the appropriate edges. This lets you know which function to use for the edge
+		* would maybe still have an overall mDirEdges and mNeuEdges for general edge integral stuff in dg_flux_operators
+
+3. Basis function evaluation for agglomerated mesh basis functions
+	* representing in legendre seems bad because of the shift?
+	* could make a new modal "reference element" object for the bounding box?
+	* Is this even an issue in 2d? What does evaluating the basis functions and their derivatives look like?
+
+4. In dg_cg_interpolation, evaluate basis functions at some middle ground of gaussQuadNodes... Is this worth it? Or should I just evaluate the lowBasis functions at the highGaussQuadNodes?
+
+5. Question about naming: would you name mFineElInds as mBaseElementInds? This lets me use "fine" and "coarse" mesh for two agglomerated meshes, but then base mesh is the overall finest mesh that everything is based on.
+
+6. Question about functionality: what kind of meshes do you want to interpolate in between? only p = 1 CG to agglomerated? only p = 1 or p = 0 DG to agglomerated?
+
+7. Question about q_hat = g_N * normal on boundaries??? Why does this not hold true in 1d?
+
+
+Answers:
+1. In general, the following may be easiest:
+	* in CgMesh, add two (or four) fields: 
+		* mDirNodes contains indices of nodes which are Dirichlet and the corresponding Dirichlet values
+		* mNeuEdges contains edges which are Neumann as well as Neumann function on that edge
+	* in DgMesh, add three (or five) fields
+		* mDirEdges contains edges which are Dirichlet and the corresponding Dirichlet function on that edge
+		* mNeuEdges contains edges which are Neumann and the corresponding Neumann function on that edge
+		* mIntEdges contains edges which are in the interior
+Could also be done outside of the meshes themselves, but might be no point
+
+2. Answered above
+
+3. Reference element seems to not make any sense, but made a basis function evaluation for local modal basis
+
+4. It maybe makes more sense to reuse basis function evaluations for high mesh, and to re-evalute for the low mesh at highGaussQuadNodes
+
+5. Rename to baseMesh
+
+6. Have more general implementation
+
+7. Reason is that g_N is the derivative in the normal. I was using just the derivative in 1d, which is why there was an inconsistency that "cancelled out"

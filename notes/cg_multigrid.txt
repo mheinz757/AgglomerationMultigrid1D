@@ -1,0 +1,18 @@
+u0 = zeros
+
+1 pre-smoothing:
+ - exactly nails the strong dirichlet
+ - residual will have 0 at strong Dirichlet conditions
+
+ - then project down once with L'
+ 	- don't have 0 at strong Dirichlet anymore
+
+Strategy 1:
+ - once projected, re-strong Dirichlet the RHS and the operator
+
+Strategy 2:
+ - do nothing after projecting and see if it works
+
+Strategy 3:
+ - do weak Dirichlet with a penalty parameter
+ - would probably behave like we expect DG to behave

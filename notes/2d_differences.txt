@@ -1,0 +1,10 @@
+* Concerns for edge integrals that show up in gradient and other operators for DgMesh and AgglomeratedDgMesh1
+    * edge integrals have no knowledge of their normal. Currently, implemented assuming that the first "edge" (i.e. Vertex) is always the incoming vertex, and the second "edge" is always the outgoing vertex (this determines a +/- 1). 
+        * to generalize this, should be carrying some "normal" information about the vertices. This can be stored in the same order as mFaces, saying if for that face the normal is inward or outwards (for example)
+    * determining which indices interact between elements on an edge integral is determined by a search (although the search here is done through assumption of what is incoming and outgoing)
+        * this is where mNeighborVertInd (in DgElement and AgglomeratedDgElement1) would maybe be helpful. However, I think it is actually more helpful to have this information stored in the edge, not the element, as I go through edges for edge integrals. If you go through elements for edge integrals, then having mNeighborVertInd being in the element makes the most sense.
+
+* mNeighborVertInd (in DgElement and AgglomeratedDgElement1) is still unused (would store the local index of the edge in the neighboring element, but can always do this search)
+    * see above for comments on this
+
+* mBaseToAgglomeratedInd (in AgglomeratedDgMesh1) is still unused 
