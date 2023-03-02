@@ -6,7 +6,7 @@ end
 function apply_smoother(A::AdditiveSchwarzSmoother, B::AbstractVecOrMat; 
     alpha::Float64 = 1.0)
 
-    Y = zeros( eltype(B), size(B) );
+    Y = zeros( size(B) );
 
     for j = 1:size(B,2)
         for (i, block) in enumerate(A.mBlocks)
@@ -30,10 +30,10 @@ end
 function apply_smoother(A::HybridSchwarzSmoother, B::AbstractVecOrMat;
     alpha::Float64 = 1.0)
 
-    Y = zeros( eltype(B), size(B) );
+    Y = zeros( size(B) );
 
     for j = 1:size(B,2)
-        temp = zeros( eltype(B), size(B,1) );
+        temp = zeros( size(B,1) );
 
         for (i, block) in enumerate(A.mBlocks)
             temp[ A.mBlockInds[:,i] ] += block \ B[ A.mBlockInds[:,i], j ];
@@ -69,7 +69,7 @@ end
 function apply_smoother(A::BlockJacobi, B::AbstractVecOrMat; 
     alpha::Float64 = 1.0)
 
-    Y = zeros( eltype(B), size(B) );
+    Y = zeros( size(B) );
 
     for j = 1:size(B,2)
         for (i, block) in enumerate(A.mBlocks)
