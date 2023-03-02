@@ -147,7 +147,7 @@ function mul!( C::StridedVecOrMat, A::BlockDiagonal, B::DenseInputVecOrMat )
         C[ A.mBlockInds[:,j], : ] += block * B[ A.mBlockInds[:,j], : ];
     end
 
-    return C
+    return C;
 end
 
 *( A::BlockDiagonal, x::DenseInputVector ) = mul!( zeros( length(x) ), A, x );
@@ -162,7 +162,7 @@ function mul!( C::StridedVecOrMat, A::AdjOrTransDenseMatrix, B::BlockDiagonal )
         C[ :, B.mBlockInds[:,j] ] += A[ :, B.mBlockInds[:,j] ] * block;
     end
 
-    return C
+    return C;
 end
 
 *( A::AdjOrTransDenseMatrix, B::BlockDiagonal ) = mul!( zeros( size(A) ), A, B );
@@ -235,7 +235,7 @@ function bd_sp_colmul( A::BlockDiagonal, B::SparseMatOrVec, col::Int64 )
         end
     end
 
-    return rowValCol, nzValCol
+    return rowValCol, nzValCol;
 end
 
 *( A::BlockDiagonal, B::sp.AbstractSparseVector ) = bd_sp_matmul( A, B )[:,1];
@@ -270,6 +270,21 @@ end
 ############################################################################################
 # Linear Algebra for BlockDiagonalLU
 ############################################################################################
+
+function ldiv!( C::StridedVecOrMat, A::BlockDiagonalLU, B::DenseInputVecOrMat )
+    size(A, 2) == size(B, 1) || throw(DimensionMismatch())
+    size(A, 1) == size(C, 1) || throw(DimensionMismatch())
+    size(B, 2) == size(C, 2) || throw(DimensionMismatch())
+
+    for (j, block) in enumerate( A.mBlocksLU )
+        C[ A.mBlockInds[:,j], : ] += block \ B[ A.mBlockInds[:,j], : ];
+    end
+
+    return C;
+end
+
+\( A::BlockDiagonalLU, x::DenseInputVector ) = ldiv!( zeros( length(x) ), A, x );
+\( A::BlockDiagonalLU, B::AdjOrTransDenseMatrix ) = ldiv!( zeros( size(B) ), A, B );
 
 function bd_sp_solve( A::BlockDiagonalLU, B::SparseMatOrVec )
     size(A, 2) == size(B, 1) || throw(DimensionMismatch())
@@ -339,7 +354,7 @@ function bd_sp_colsolve( A::BlockDiagonalLU, B::SparseMatOrVec, col::Int64 )
         end
     end
 
-    return rowValCol, nzValCol
+    return rowValCol, nzValCol;
 end
 
 \( A::BlockDiagonalLU, B::sp.AbstractSparseVector ) = bd_sp_solve( A, B )[:,1];
