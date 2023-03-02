@@ -9,13 +9,13 @@ const SparseOrTri = Union{ sp.SparseMatrixCSCUnion, sp.SparseTriangular }
 const SparseMatOrVec = Union{ sp.SparseOrTri, sp.SparseVectorUnion, 
     SubArray{<:Any,<:Any,<:sp.AbstractSparseArray} }
 
-struct BlockDiagonal # <: AbstractMatrix
+struct BlockDiagonal <: AbstractMatrix{Float64}
     mBlocks::Vector{Matrix{Float64}}
     mBlockSize::Int64
     mBlockInds::Matrix{Int64}
 end
 
-struct BlockDiagonalLU # <: AbstractMatrix
+struct BlockDiagonalLU <: la.Factorization{Float64}
     mBlocksLU::Vector{la.LU{Float64, Matrix{Float64}}}
     mBlockSize::Int64
     mBlockInds::Matrix{Int64}
