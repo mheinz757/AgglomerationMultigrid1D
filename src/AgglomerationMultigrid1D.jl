@@ -20,6 +20,7 @@ include("boundary_conditions.jl")
 include("legendre.jl")
 include("gaussquad.jl")
 include("reference_element.jl")
+include("blockdiagonal.jl")
 
 include("cgMesh.jl")
 include("dgMesh.jl")
