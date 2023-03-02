@@ -2,9 +2,12 @@ module AgglomerationMultigrid1D
 
 # import needed packages
 import LinearAlgebra as la
-import LinearAlgebra: size, mul!, *, ldiv!, \
 import SparseArrays as sp
 import SuiteSparse
+
+import Base: *, \
+import Base: size, similar
+import LinearAlgebra: mul!, ldiv!, lu
 # import BlockDiagonals as bd
 
 abstract type AbstractElement end
