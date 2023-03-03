@@ -29,8 +29,8 @@ for (i, n) in enumerate(nVec)
     G, D, C = aggmg.dg_flux_operators( dgMesh, mesh, bdCond, CDir );
     f, r = aggmg.dg_flux_rhs( dgMesh, mesh, func, bdCond, CDir );
 
-    b = f - D * (dgMesh.mMassMatrix \ r);
-    A = C - D * sp.sparse(Matrix(dgMesh.mMassMatrix) \ G);
+    b = f - D * ( dgMesh.mMassMatrixLU \ r );
+    A = C - D * ( dgMesh.mMassMatrixLU \ G );
 
     uDg = A \ b;
 

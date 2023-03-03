@@ -4,7 +4,6 @@ const AdjOrTransDenseMatrix = Union{ DenseMatrixUnion, la.Adjoint{<:Any, <:Dense
     la.Transpose{<:Any, <:DenseMatrixUnion} }
 const DenseInputVector = Union{StridedVector, BitVector}
 const DenseInputVecOrMat = Union{AdjOrTransDenseMatrix, DenseInputVector}
-const SparseMatrixCSCUnion = sp.SparseMatrixCSCUnion
 const SparseOrTri = Union{ sp.SparseMatrixCSCUnion, sp.SparseTriangular }
 const SparseMatOrVec = Union{ sp.SparseOrTri, sp.SparseVectorUnion, 
     SubArray{<:Any,<:Any,<:sp.AbstractSparseArray} }
@@ -30,8 +29,8 @@ function BlockDiagonal( mBlocks )
     mBlockSize = size( mBlocks[1], 1 );
     mBlockInds = zeros( mBlockSize, length(mBlocks) );
 
-    for (j, block) in enumerate( mBlocks )
-        mBlockInds[:,j] = ((j-1) * mBlockSize + 1):j*mBlockSize;
+    for (i, block) in enumerate( mBlocks )
+        mBlockInds[:,i] = ((i-1) * mBlockSize + 1):i*mBlockSize;
 
         if size(block) != (mBlockSize, mBlockSize)
             throw( ArgumentError( "All blocks must be of the same size." ) );
@@ -51,8 +50,8 @@ function BlockDiagonalLU( A::BlockDiagonal )
     mBlocksLU = Vector{la.LU{Float64, Matrix{Float64}}}( undef, length(A.mBlocks) );
     mBlockInds = A.mBlockInds;
 
-    for (j, block) in enumerate( A.mBlocks )
-        mBlocksLU[j] = la.lu( block );
+    for (i, block) in enumerate( A.mBlocks )
+        mBlocksLU[i] = la.lu( block );
     end
 
     return BlockDiagonalLU( mBlocksLU, mBlockSize, mBlockInds );
@@ -64,9 +63,9 @@ function BlockDiagonalLU( blocks::Vector{Matrix{Float64}} )
     mBlocksLU = Vector{la.LU{Float64, Matrix{Float64}}}( undef, length(blocks) );
     mBlockInds = zeros( mBlockSize, length(mBlocks) );
 
-    for (j, block) in enumerate( blocks )
-        mBlocksLU[j] = la.lu( block );
-        mBlockInds[:,j] = ((j-1) * mBlockSize + 1):j*mBlockSize;
+    for (i, block) in enumerate( blocks )
+        mBlocksLU[i] = la.lu( block );
+        mBlockInds[:,i] = ((i-1) * mBlockSize + 1):i*mBlockSize;
 
         if size(block) != (mBlockSize, mBlockSize)
             throw( ArgumentError( "All blocks must be of the same size." ) );
@@ -98,12 +97,38 @@ function similar(A::BlockDiagonal)
     mBlockSize = A.mBlockSize
     mBlockInds = A.mBlockInds
 
-    for (j, block) in enumerate( A.mBlocks )
-        mBlocks[j] = similar( block );
+    for (i, block) in enumerate( A.mBlocks )
+        mBlocks[i] = similar( block );
     end
 
     return BlockDiagonal( mBlocks, mBlockSize, mBlockInds );
 end
+
+function Matrix(A::BlockDiagonal)
+    B = zeros( size(A) );
+    for (i, block) in enumerate(A.mBlocks)
+        B[ mBlockInds[:,i], mBlockInds[:,i] ] = block;
+    end
+    
+    return B;
+end
+
+Array(A::BlockDiagonal) = Matrix(A);
+
+function sparse(A::BlockDiagonal)
+    data = Vector{Tuple{Int64, Int64, Float64}}(undef, 0);
+
+    for (k, block) in enumerate(A.mBlocks)
+        for (j, node2) in enumerate( A.mBlockInds[:,k] ), (i, node1) in enumerate( A.mBlockInds[:,k] )
+            push!( data, ( node1, node2, block[i,j] ) );
+        end
+    end
+
+    return sp.sparse( (x->x[1]).(data), (x->x[2]).(data), (x->x[3]).(data), 
+        size(A,1), size(A,2) );
+end
+
+# show(io::IO, A::BlockDiagonal) = show(io::IO, Array(A));
 
 ############################################################################################
 # Linear Algebra for BlockDiagonal
@@ -115,8 +140,8 @@ function mul!( C::BlockDiagonal, A::BlockDiagonal, b::Number)
     A.mBlockSize == A.mBlockSize || error("C and A must have the same blocksize.")
 
     C.mBlockInds[:,:] = A.mBlockInds;
-    for (j, block) in enumerate( A.mBlocks )
-        C.mBlocks[j][:,:] = b * block
+    for (i, block) in enumerate( A.mBlocks )
+        C.mBlocks[i][:,:] = b * block
     end
 
     return C;
@@ -128,8 +153,8 @@ function mul!( C::BlockDiagonal, b::Number, A::BlockDiagonal)
     A.mBlockSize == A.mBlockSize || error("C and A must have the same blocksize.")
 
     C.mBlockInds[:,:] = A.mBlockInds;
-    for (j, block) in enumerate( A.mBlocks )
-        C.mBlocks[j][:,:] = b * block
+    for (i, block) in enumerate( A.mBlocks )
+        C.mBlocks[i][:,:] = b * block
     end
 
     return C;
@@ -143,8 +168,8 @@ function mul!( C::StridedVecOrMat, A::BlockDiagonal, B::DenseInputVecOrMat )
     size(A, 1) == size(C, 1) || throw(DimensionMismatch())
     size(B, 2) == size(C, 2) || throw(DimensionMismatch())
 
-    for (j, block) in enumerate( A.mBlocks )
-        C[ A.mBlockInds[:,j], : ] += block * B[ A.mBlockInds[:,j], : ];
+    for (i, block) in enumerate( A.mBlocks )
+        C[ A.mBlockInds[:,i], : ] += block * B[ A.mBlockInds[:,i], : ];
     end
 
     return C;
@@ -158,8 +183,8 @@ function mul!( C::StridedVecOrMat, A::AdjOrTransDenseMatrix, B::BlockDiagonal )
     size(A, 1) == size(C, 1) || throw(DimensionMismatch())
     size(B, 2) == size(C, 2) || throw(DimensionMismatch())
 
-    for (j, block) in enumerate( B.mBlocks )
-        C[ :, B.mBlockInds[:,j] ] += A[ :, B.mBlockInds[:,j] ] * block;
+    for (i, block) in enumerate( B.mBlocks )
+        C[ :, B.mBlockInds[:,i] ] += A[ :, B.mBlockInds[:,i] ] * block;
     end
 
     return C;
@@ -209,23 +234,23 @@ function bd_sp_colmul( A::BlockDiagonal, B::SparseMatOrVec, col::Int64 )
         tempVec = zeros( A.mBlockSize );
         tempVec[ row - minBlockRow + 1] = nzValB[ind];
 
-        j = 1;
-        if ind + j <= length( nzValB )
-            tempRow = rowValB[ind + j];
+        i = 1;
+        if ind + i <= length( nzValB )
+            tempRow = rowValB[ind + i];
         else
             tempRow = row + A.mBlockSize;
         end
 
         while tempRow <= maxBlockRow
-            tempVec[ tempRow - minBlockRow + 1 ] = nzValB[ind + j];
-            j += 1;
-            if ind + j <= length( nzValB )
-                tempRow = rowValB[ind + j];
+            tempVec[ tempRow - minBlockRow + 1 ] = nzValB[ind + i];
+            i += 1;
+            if ind + i <= length( nzValB )
+                tempRow = rowValB[ind + i];
             else
                 tempRow = row + A.mBlockSize;
             end
         end
-        ind += j;
+        ind += i;
 
         b = A.mBlocks[ blockInd ] * tempVec;
 
@@ -241,7 +266,7 @@ end
 *( A::BlockDiagonal, B::sp.AbstractSparseVector ) = bd_sp_matmul( A, B )[:,1];
 *( A::BlockDiagonal, B::sp.SparseColumnView ) = bd_sp_matmul( A, B )[:,1];
 *( A::BlockDiagonal, B::sp.SparseVectorView ) = bd_sp_matmul( A, B )[:,1];
-*( A::BlockDiagonal, B::SparseMatrixCSCUnion ) = bd_sp_matmul( A, B );
+*( A::BlockDiagonal, B::sp.SparseMatrixCSCUnion ) = bd_sp_matmul( A, B );
 *( A::BlockDiagonal, B::sp.SparseTriangular ) = bd_sp_matmul( A, B );
 *( A::BlockDiagonal, B::la.Adjoint{<:Any,<:sp.AbstractSparseMatrixCSC} ) = bd_sp_matmul( A, 
     copy(B) );
@@ -276,8 +301,8 @@ function ldiv!( C::StridedVecOrMat, A::BlockDiagonalLU, B::DenseInputVecOrMat )
     size(A, 1) == size(C, 1) || throw(DimensionMismatch())
     size(B, 2) == size(C, 2) || throw(DimensionMismatch())
 
-    for (j, block) in enumerate( A.mBlocksLU )
-        C[ A.mBlockInds[:,j], : ] += block \ B[ A.mBlockInds[:,j], : ];
+    for (i, block) in enumerate( A.mBlocksLU )
+        C[ A.mBlockInds[:,i], : ] += block \ B[ A.mBlockInds[:,i], : ];
     end
 
     return C;
@@ -328,23 +353,23 @@ function bd_sp_colsolve( A::BlockDiagonalLU, B::SparseMatOrVec, col::Int64 )
         tempVec = zeros( A.mBlockSize );
         tempVec[ row - minBlockRow + 1] = nzValB[ind];
 
-        j = 1;
-        if ind + j <= length( nzValB )
-            tempRow = rowValB[ind + j];
+        i = 1;
+        if ind + i <= length( nzValB )
+            tempRow = rowValB[ind + i];
         else
             tempRow = row + A.mBlockSize;
         end
 
         while tempRow <= maxBlockRow
-            tempVec[ tempRow - minBlockRow + 1 ] = nzValB[ind + j];
-            j += 1;
-            if ind + j <= length( nzValB )
-                tempRow = rowValB[ind + j];
+            tempVec[ tempRow - minBlockRow + 1 ] = nzValB[ind + i];
+            i += 1;
+            if ind + i <= length( nzValB )
+                tempRow = rowValB[ind + i];
             else
                 tempRow = row + A.mBlockSize;
             end
         end
-        ind += j;
+        ind += i;
 
         b = A.mBlocksLU[ blockInd ] \ tempVec;
 
@@ -360,7 +385,7 @@ end
 \( A::BlockDiagonalLU, B::sp.AbstractSparseVector ) = bd_sp_solve( A, B )[:,1];
 \( A::BlockDiagonalLU, B::sp.SparseColumnView ) = bd_sp_solve( A, B )[:,1];
 \( A::BlockDiagonalLU, B::sp.SparseVectorView ) = bd_sp_solve( A, B )[:,1];
-\( A::BlockDiagonalLU, B::SparseMatrixCSCUnion ) = bd_sp_solve( A, B );
+\( A::BlockDiagonalLU, B::sp.SparseMatrixCSCUnion ) = bd_sp_solve( A, B );
 \( A::BlockDiagonalLU, B::sp.SparseTriangular ) = bd_sp_solve( A, B );
 \( A::BlockDiagonalLU, B::la.Adjoint{<:Any,<:sp.AbstractSparseMatrixCSC} ) = bd_sp_solve( A, 
     copy(B) );

@@ -38,16 +38,16 @@ L = aggmg.aggdg_dg_interpolation( aggMesh, baseMesh );
 
 # get operators on the two levels
 baseG, baseD, baseC = aggmg.dg_flux_operators( baseMesh, mesh, bdCond, CDir );
-baseA = baseC - baseD * sp.sparse( Matrix(baseMesh.mMassMatrix) \ baseG );
+baseA = baseC - baseD * ( baseMesh.mMassMatrixLU \ baseG );
 
 aggG, aggD, aggC = aggmg.dg_flux_operators( aggMesh, baseMesh, bdCond, CDir );
-aggA = aggC - aggD * sp.sparse( Matrix(aggMesh.mMassMatrix) \ aggG );
+aggA = aggC - aggD * ( aggMesh.mMassMatrixLU \ aggG );
 
 println( "||aggG - L'*baseG*L||: ", la.norm( aggG - L'*baseG*L ) );
 println( "||aggD - L'*baseD*L||: ", la.norm( aggD - L'*baseD*L ) );
 println( "||aggC - L'*baseC*L||: ", la.norm( aggC - L'*baseC*L ) );
-println( "||aggM - L'*baseM*L||: ", la.norm( aggMesh.mMassMatrix - 
-    L'*baseMesh.mMassMatrix*L ) );
+println( "||aggM - L'*baseM*L||: ", la.norm( sp.sparse( aggMesh.mMassMatrix ) - 
+    L' * ( baseMesh.mMassMatrix * L ) ) );
 
 ############################################################################################
 # test interpolation of solutions themselves

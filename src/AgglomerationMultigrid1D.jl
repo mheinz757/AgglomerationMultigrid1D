@@ -6,8 +6,9 @@ import SparseArrays as sp
 import SuiteSparse
 
 import Base: *, \
-import Base: size, similar
-import LinearAlgebra: mul!, ldiv!, lu
+import Base: Array, Matrix, show, similar, size
+import LinearAlgebra: ldiv!, lu, mul!
+import SparseArrays: sparse
 # import BlockDiagonals as bd
 
 abstract type AbstractElement end

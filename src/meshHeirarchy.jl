@@ -69,7 +69,7 @@ function MeshHierarchy( mMeshes, mesh, mBdConds, A; nCG = 1, nDG = 0, nAgg = 0,
         # mC[1] = C_matrix( mMeshes[nCG+1], mesh, mBdConds[nCG+1], CDir );
 
         mStiffness[nCG+1] = mC[1] - mDivergence[1] * 
-            sp.sparse( Array( mMeshes[nCG+1].mMassMatrix ) \ mGradient[1] );
+            ( mMeshes[nCG+1].mMassMatrixLU \ mGradient[1] );
         mSmoothers[nCG+1] = dg_smoother( mMeshes[nCG+1], mStiffness[nCG+1], :blockJac );
 
         for i = 1:(nDG-1)
@@ -81,7 +81,7 @@ function MeshHierarchy( mMeshes, mesh, mBdConds, A; nCG = 1, nDG = 0, nAgg = 0,
             mC[i+1] = L'*mC[i]*L;
 
             mStiffness[nCG+i+1] = mC[i+1] - mDivergence[i+1] * 
-                sp.sparse( Matrix(mMeshes[nCG+i+1].mMassMatrix) \ mGradient[i+1] );
+                ( mMeshes[nCG+i+1].mMassMatrixLU \ mGradient[i+1] );
             mSmoothers[nCG+i+1] = dg_smoother( mMeshes[nCG+i+1], mStiffness[nCG+i+1],
                 :blockJac );
         end
@@ -100,7 +100,7 @@ function MeshHierarchy( mMeshes, mesh, mBdConds, A; nCG = 1, nDG = 0, nAgg = 0,
             mC[nDG+i+1] = L'*mC[nDG+i]*L;
 
             mStiffness[nCG+nDG+i+1] = mC[nDG+i+1] - mDivergence[nDG+i+1] * 
-                sp.sparse( Matrix(mMeshes[nCG+nDG+i+1].mMassMatrix) \ mGradient[nDG+i+1] );
+                ( mMeshes[nCG+nDG+i+1].mMassMatrixLU \ mGradient[nDG+i+1] );
             mSmoothers[nCG+nDG+i+1] = dg_smoother( mMeshes[nCG+nDG+i+1], 
                 mStiffness[nCG+nDG+i+1], :blockJac );
         end
@@ -113,7 +113,7 @@ function MeshHierarchy( mMeshes, mesh, mBdConds, A; nCG = 1, nDG = 0, nAgg = 0,
                 mMeshes[nCG], mBdConds[nCG+1], CDir );
 
             mStiffness[nCG+1] = mC[1] - mDivergence[1] * 
-                sp.sparse( Array( mMeshes[nCG+1].mMassMatrix ) \ mGradient[1] );
+                ( mMeshes[nCG+1].mMassMatrixLU \ mGradient[1] );
             mSmoothers[nCG+1] = dg_smoother( mMeshes[nCG+1], mStiffness[nCG+1], :blockJac );
 
             for i = 1:(nAgg-1)
@@ -126,7 +126,7 @@ function MeshHierarchy( mMeshes, mesh, mBdConds, A; nCG = 1, nDG = 0, nAgg = 0,
                 mC[i+1] = L'*mC[i]*L;
     
                 mStiffness[nCG+i+1] = mC[i+1] - mDivergence[i+1] * 
-                    sp.sparse( Matrix(mMeshes[nCG+i+1].mMassMatrix) \ mGradient[i+1] );
+                    ( mMeshes[nCG+i+1].mMassMatrixLU \ mGradient[i+1] );
                 mSmoothers[nCG+i+1] = dg_smoother( mMeshes[nCG+i+1], mStiffness[nCG+i+1], 
                     :blockJac );
             end
@@ -172,7 +172,7 @@ function MeshHierarchy( mMeshes, mBdConds, A, G, D, C; nDG = 1, nAgg = 0 )
         mC[i+1] = L'*mC[i]*L;
 
         mStiffness[i+1] = mC[i+1] - mDivergence[i+1] * 
-            sp.sparse( Matrix(mMeshes[i+1].mMassMatrix) \ mGradient[i+1] );
+            ( mMeshes[i+1].mMassMatrixLU \ mGradient[i+1] );
         mSmoothers[i+1] = dg_smoother( mMeshes[i+1], mStiffness[i+1], :blockJac );
     end
 

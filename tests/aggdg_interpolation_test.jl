@@ -51,16 +51,16 @@ coarseMesh2 = aggmg.AgglomeratedDgMesh1( pAgg, agg3, mesh, baseMesh );
 
 # get operators on the two levels
 coarseG, coarseD, coarseC = aggmg.dg_flux_operators( coarseMesh2, baseMesh, bdCond, CDir );
-coarseA = coarseC - coarseD * sp.sparse( Matrix(coarseMesh2.mMassMatrix) \ coarseG );
+coarseA = coarseC - coarseD * ( coarseMesh2.mMassMatrixLU \ coarseG );
 
 fineG, fineD, fineC = aggmg.dg_flux_operators( fineMesh, baseMesh, bdCond, CDir );
-fineA = fineC - fineD * sp.sparse( Matrix(fineMesh.mMassMatrix) \ fineG );
+fineA = fineC - fineD * ( fineMesh.mMassMatrixLU \ fineG );
 
 println( "||coarseG - L'*fineG*L||: ", la.norm( coarseG - L'*fineG*L ) );
 println( "||coarseD - L'*fineD*L||: ", la.norm( coarseD - L'*fineD*L ) );
 println( "||coarseC - L'*fineC*L||: ", la.norm( coarseC - L'*fineC*L ) );
-println( "||coarseM - L'*fineM*L||: ", la.norm( coarseMesh2.mMassMatrix - 
-    L'*fineMesh.mMassMatrix*L ) );
+println( "||coarseM - L'*fineM*L||: ", la.norm( sp.sparse( coarseMesh2.mMassMatrix ) - 
+    L' * ( fineMesh.mMassMatrix * L ) ) );
 
 ############################################################################################
 # test interpolation of solutions themselves

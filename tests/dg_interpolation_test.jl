@@ -32,15 +32,16 @@ L = aggmg.dg_dg_interpolation( lowMesh, highMesh );
 L2 = aggmg.dg_dg_interpolation2( lowMesh, highMesh );
 
 lowG, lowD, lowC = aggmg.dg_flux_operators( lowMesh, mesh, bdCond, CDir );
-lowA = lowC - lowD * sp.sparse(Matrix(lowMesh.mMassMatrix) \ lowG);
+lowA = lowC - lowD * ( lowMesh.mMassMatrixLU \ lowG );
 
 highG, highD, highC = aggmg.dg_flux_operators( highMesh, mesh, bdCond, CDir );
-highA = highC - highD * sp.sparse(Matrix(highMesh.mMassMatrix) \ highG);
+highA = highC - highD * ( highMesh.mMassMatrixLU \ highG );
 
-println("||lowG - L'*highG*L||: ", la.norm(lowG - L'*highG*L));
-println("||lowD - L'*highD*L||: ", la.norm(lowD - L'*highD*L));
-println("||lowC - L'*highC*L||: ", la.norm(lowC - L'*highC*L));
-println("||lowM - L'*highM*L||: ", la.norm(lowMesh.mMassMatrix - L'*highMesh.mMassMatrix*L));
+println( "||lowG - L'*highG*L||: ", la.norm( lowG - L'*highG*L ) );
+println( "||lowD - L'*highD*L||: ", la.norm( lowD - L'*highD*L ) );
+println( "||lowC - L'*highC*L||: ", la.norm( lowC - L'*highC*L ) );
+println( "||lowM - L'*highM*L||: ", la.norm( sp.sparse( lowMesh.mMassMatrix ) - 
+    L' * ( highMesh.mMassMatrix * L ) ) );
 
 ############################################################################################
 # test interpolation of solutions themselves
@@ -129,7 +130,7 @@ for el in highMesh.mElements
     end
 end
 
-uLowRestr = lowMesh.mMassMatrixLU \ (L' * ( highMesh.mMassMatrix * uHigh ))
+uLowRestr = lowMesh.mMassMatrixLU \ ( L' * ( highMesh.mMassMatrix * uHigh ) );
 
 l2ErrorReg = 0.0;
 l2ErrorRestr = 0.0;

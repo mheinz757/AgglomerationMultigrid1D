@@ -20,9 +20,9 @@ struct DgMesh <: AbstractMesh
     mRefEl::ReferenceElement
     # also would have a reference edge in 2d
     mSwitch::Vector{Int64} # switch function for each vertex (edge in 2d)
-    
-    mMassMatrix::sp.SparseMatrixCSC{Float64, Int64} # can switch to bd.BlockDiagonal{Float64, Matrix{Float64}}
-    mMassMatrixLU::SuiteSparse.UMFPACK.UmfpackLU{Float64, Int64}
+
+    mMassMatrix::BlockDiagonal # can switch to bd.BlockDiagonal{Float64, Matrix{Float64}}
+    mMassMatrixLU::BlockDiagonalLU
 end
 
 ############################################################################################
@@ -66,17 +66,17 @@ function DgMesh( mesh::Mesh, mP )
 
     mNumNodes = length( mElements ) * (mP + 1);
 
-    data = Vector{Tuple{Int64, Int64, Float64}}(undef, 0);
+    massBlocks = Vector{Matrix{Float64}}( undef, length( mElements ) );
+    massBlockSize = mP + 1;
+    massBlockInds = zeros( massBlockSize, length( mElements ) );
 
     for el in mElements
-        for (j, node2) in enumerate(el.mNodesInd), (i, node1) in enumerate(el.mNodesInd)
-            push!( data, ( node1, node2, el.mJacobian * mRefEl.mMassMatrix[i,j] ) );
-        end
+        massBlocks[el.mIndex] = el.mJacobian * mRefEl.mMassMatrix;
+        massBlockInds[:, el.mIndex] = el.mNodesInd;
     end
 
-    mMassMatrix = sp.sparse( (x->x[1]).(data), (x->x[2]).(data), (x->x[3]).(data), 
-        mNumNodes, mNumNodes );
-    mMassMatrixLU = la.lu(mMassMatrix);
+    mMassMatrix = BlockDiagonal( massBlocks, massBlockSize, massBlockInds );
+    mMassMatrixLU = lu( mMassMatrix );
 
     mSwitch = Vector{Int64}( undef, length( mesh.mVertices ) );
 
@@ -122,17 +122,17 @@ function DgMesh( mesh::Mesh, mP, mSwitch )
 
     mNumNodes = length( mElements ) * (mP + 1);
 
-    data = Vector{Tuple{Int64, Int64, Float64}}(undef, 0);
+    massBlocks = Vector{Matrix{Float64}}( undef, length( mElements ) );
+    massBlockSize = mP + 1;
+    massBlockInds = zeros( massBlockSize, length( mElements ) );
 
     for el in mElements
-        for (j, node2) in enumerate(el.mNodesInd), (i, node1) in enumerate(el.mNodesInd)
-            push!( data, ( node1, node2, el.mJacobian * mRefEl.mMassMatrix[i,j] ) );
-        end
+        massBlocks[el.mIndex] = el.mJacobian * mRefEl.mMassMatrix;
+        massBlockInds[:, el.mIndex] = el.mNodesInd;
     end
 
-    mMassMatrix = sp.sparse( (x->x[1]).(data), (x->x[2]).(data), (x->x[3]).(data), 
-        mNumNodes, mNumNodes );
-    mMassMatrixLU = la.lu(mMassMatrix);
+    mMassMatrix = BlockDiagonal( massBlocks, massBlockSize, massBlockInds );
+    mMassMatrixLU = lu( mMassMatrix );
 
     return DgMesh( mP, mElements, mNumNodes, mRefEl, mSwitch, mMassMatrix, mMassMatrixLU );
 end

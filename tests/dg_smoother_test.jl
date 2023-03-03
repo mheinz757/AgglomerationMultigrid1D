@@ -28,10 +28,10 @@ dgMesh = aggmg.DgMesh( mesh, p );
 
 # mesh operators and rhs
 G, D, C = aggmg.dg_flux_operators( dgMesh, mesh, bdCond, CDir );
-A = C - D * sp.sparse(Matrix(dgMesh.mMassMatrix) \ G);
+A = C - D * ( dgMesh.mMassMatrixLU \ G );
 
 f, r = aggmg.dg_flux_rhs( dgMesh, mesh, func, bdCond, CDir );
-b = f - D * (dgMesh.mMassMatrix \ r);
+b = f - D * ( dgMesh.mMassMatrixLU \ r );
 
 # smoother on the mesh
 smoother1 = aggmg.dg_smoother( dgMesh, A, :blockJac );
@@ -61,10 +61,10 @@ bdCond = set_boundary!( mesh, xin, xout, mBdCond );
 dgMesh = aggmg.DgMesh( mesh, p );
 
 G, D, C = aggmg.dg_flux_operators( dgMesh, mesh, bdCond, CDir );
-A = C - D * sp.sparse(Matrix(dgMesh.mMassMatrix) \ G);
+A = C - D * ( dgMesh.mMassMatrixLU \ G );
 
 f, r = aggmg.dg_flux_rhs( dgMesh, mesh, func, bdCond, CDir );
-b = f - D * (dgMesh.mMassMatrix \ r);
+b = f - D * ( dgMesh.mMassMatrixLU \ r );
 
 smoother1 = aggmg.dg_smoother( dgMesh, A, :blockJac );
 smoother2 = aggmg.dg_smoother( dgMesh, A, :jac );

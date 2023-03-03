@@ -36,10 +36,10 @@ for i = 1:nDG
 end
 
 G, D, C = aggmg.dg_flux_operators( dgMeshes[1], mesh, bdConds[1], CDir );
-A = C - D * sp.sparse(Matrix(dgMeshes[1].mMassMatrix) \ G);
+A = C - D * ( dgMeshes[1].mMassMatrixLU \ G );
 
 f, r = aggmg.dg_flux_rhs( dgMeshes[1], mesh, func, bdConds[1], CDir );
-b = f - D * (dgMeshes[1].mMassMatrix \ r);
+b = f - D * ( dgMeshes[1].mMassMatrixLU \ r );
 
 x0 = 0.0*b;
 

@@ -40,8 +40,8 @@ aggMesh = aggmg.AgglomeratedDgMesh1( pAgg, agg, mesh, baseMesh );
 G, D, C = aggmg.dg_flux_operators( aggMesh, baseMesh, bdCond, CDir );
 f, r = aggmg.dg_flux_rhs( aggMesh, baseMesh, func, bdCond, CDir );
 
-b = f - D * (aggMesh.mMassMatrix \ r);
-A = C - D * sp.sparse(Matrix(aggMesh.mMassMatrix) \ G);
+b = f - D * ( aggMesh.mMassMatrixLU \ r );
+A = C - D * ( aggMesh.mMassMatrixLU \ G );
 
 # smoother on mesh
 smoother1 = aggmg.dg_smoother( aggMesh, A, :blockJac );
@@ -87,8 +87,8 @@ aggMesh = aggmg.AgglomeratedDgMesh1( pAgg, agg, mesh, baseMesh );
 G, D, C = aggmg.dg_flux_operators( aggMesh, baseMesh, bdCond, CDir );
 f, r = aggmg.dg_flux_rhs( aggMesh, baseMesh, func, bdCond, CDir );
 
-b = f - D * (aggMesh.mMassMatrix \ r);
-A = C - D * sp.sparse(Matrix(aggMesh.mMassMatrix) \ G);
+b = f - D * ( aggMesh.mMassMatrixLU \ r );
+A = C - D * ( aggMesh.mMassMatrixLU \ G );
 
 # smoother on mesh
 smoother1 = aggmg.dg_smoother( aggMesh, A, :blockJac );

@@ -40,7 +40,7 @@ L1 = aggmg.dg_cg_interpolation( lowMesh, highMesh, mesh, 1 );
 L2 = aggmg.dg_cg_interpolation( lowMesh, highMesh, mesh, 2 );
 
 lowG, lowD, lowC = aggmg.dg_flux_operators( lowMesh, mesh, bdCond, CDir );
-lowA = lowC - lowD * sp.sparse(Matrix(lowMesh.mMassMatrix) \ lowG);
+lowA = lowC - lowD * ( lowMesh.mMassMatrixLU \ lowG );
 
 highA = aggmg.cg_stiffness( highMesh, bdCond );
 
@@ -135,7 +135,7 @@ for el in highMesh.mElements
     end
 end
 
-uLowRestr = lowMesh.mMassMatrixLU \ (L' * ( highMesh.mMassMatrix * uHigh ));
+uLowRestr = lowMesh.mMassMatrixLU \ ( L' * ( highMesh.mMassMatrix * uHigh ) );
 
 l2ErrorReg = 0.0;
 l2ErrorRestr = 0.0;

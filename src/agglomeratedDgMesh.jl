@@ -37,8 +37,8 @@ struct AgglomeratedDgMesh1 <: AbstractMesh
     mVertices::Vector{AgglomeratedDgVertex}
     mSwitch::Vector{Int64} # switch function for each vertex (edge in 2d)
 
-    mMassMatrix::sp.SparseMatrixCSC{Float64, Int64} # can switch to bd.BlockDiagonal{Float64, Matrix{Float64}}
-    mMassMatrixLU::SuiteSparse.UMFPACK.UmfpackLU{Float64, Int64}
+    mMassMatrix::BlockDiagonal # can switch to bd.BlockDiagonal{Float64, Matrix{Float64}}
+    mMassMatrixLU::BlockDiagonalLU
 
     mGaussQuadNodes::Vector{Float64}
     mGaussQuadWeights::Vector{Float64}
@@ -64,8 +64,8 @@ struct AgglomeratedDgMeshN <: AbstractMesh
     mElements::Vector{AgglomeratedDgElementN}
     mNumNodes::Int64
 
-    mMassMatrix::sp.SparseMatrixCSC{Float64, Int64} # can switch to bd.BlockDiagonal{Float64, Matrix{Float64}}
-    mMassMatrixLU::SuiteSparse.UMFPACK.UmfpackLU{Float64, Int64}
+    mMassMatrix::BlockDiagonal # can switch to bd.BlockDiagonal{Float64, Matrix{Float64}}
+    mMassMatrixLU::BlockDiagonalLU
 
     mGaussQuadNodes::Vector{Float64}
     mGaussQuadWeights::Vector{Float64}
@@ -337,7 +337,9 @@ function AgglomeratedDgMesh1( mP, mElements, mAllVertices, mVertices,
     mGaussQuadNodes, mGaussQuadWeights = gauss_quad( 2*mP );
 
     # get mass matrix
-    data = Vector{Tuple{Int64, Int64, Float64}}(undef, 0);
+    massBlocks = Vector{Matrix{Float64}}( undef, length( mElements ) );
+    massBlockSize = mP + 1;
+    massBlockInds = zeros( massBlockSize, length( mElements ) );
 
     for el in mElements
         temp = zeros( length( el.mNodesInd ), length( el.mNodesInd ) );
@@ -349,14 +351,12 @@ function AgglomeratedDgMesh1( mP, mElements, mAllVertices, mVertices,
             end
         end
 
-        for (j, node2) in enumerate( el.mNodesInd ), (i, node1) in enumerate( el.mNodesInd ) 
-            push!(data, ( node1, node2, temp[i,j] ) );
-        end
+        massBlocks[el.mIndex] = temp;
+        massBlockInds[:, el.mIndex] = el.mNodesInd;
     end
 
-    mMassMatrix = sp.sparse( (x->x[1]).(data), (x->x[2]).(data), (x->x[3]).(data), 
-        mNumNodes, mNumNodes );
-    mMassMatrixLU = la.lu(mMassMatrix);
+    mMassMatrix = BlockDiagonal( massBlocks, massBlockSize, massBlockInds );
+    mMassMatrixLU = lu( mMassMatrix );
 
     # get switch functions
     mSwitch = Vector{Int64}( undef, length( mVertices ) );
@@ -434,7 +434,9 @@ function AgglomeratedDgMesh1( mP, agg::Vector{Vector{Int64}}, mesh::Mesh,
     end
 
     # get mass matrix
-    data = Vector{Tuple{Int64, Int64, Float64}}(undef, 0);
+    massBlocks = Vector{Matrix{Float64}}( undef, length( mElements ) );
+    massBlockSize = mP + 1;
+    massBlockInds = zeros( massBlockSize, length( mElements ) );
 
     for el in mElements
         temp = zeros( length( el.mNodesInd ), length( el.mNodesInd ) );
@@ -446,14 +448,12 @@ function AgglomeratedDgMesh1( mP, agg::Vector{Vector{Int64}}, mesh::Mesh,
             end
         end
 
-        for (j, node2) in enumerate( el.mNodesInd ), (i, node1) in enumerate( el.mNodesInd ) 
-            push!(data, ( node1, node2, temp[i,j] ) );
-        end
+        massBlocks[el.mIndex] = temp;
+        massBlockInds[:, el.mIndex] = el.mNodesInd;
     end
 
-    mMassMatrix = sp.sparse( (x->x[1]).(data), (x->x[2]).(data), (x->x[3]).(data), 
-        mNumNodes, mNumNodes );
-    mMassMatrixLU = la.lu(mMassMatrix);
+    mMassMatrix = BlockDiagonal( massBlocks, massBlockSize, massBlockInds );
+    mMassMatrixLU = lu( mMassMatrix );
 
     # get switch functions
     mSwitch = Vector{Int64}( undef, length( mVertices ) );
@@ -568,7 +568,9 @@ function AgglomeratedDgMeshN( mP, mElements, baseMesh::Union{CgMesh, DgMesh} )
     mGaussQuadNodes, mGaussQuadWeights = gauss_quad( 2*mP );
 
     # get mass matrix
-    data = Vector{Tuple{Int64, Int64, Float64}}(undef, 0);
+    massBlocks = Vector{Matrix{Float64}}( undef, length( mElements ) );
+    massBlockSize = mP + 1;
+    massBlockInds = zeros( massBlockSize, length( mElements ) );
 
     for el in mElements
         temp = zeros( length( el.mNodesInd ), length( el.mNodesInd ) );
@@ -580,14 +582,12 @@ function AgglomeratedDgMeshN( mP, mElements, baseMesh::Union{CgMesh, DgMesh} )
             end
         end
 
-        for (j, node2) in enumerate( el.mNodesInd ), (i, node1) in enumerate( el.mNodesInd ) 
-            push!(data, ( node1, node2, temp[i,j] ) );
-        end
+        massBlocks[el.mIndex] = temp;
+        massBlockInds[:, el.mIndex] = el.mNodesInd;
     end
 
-    mMassMatrix = sp.sparse( (x->x[1]).(data), (x->x[2]).(data), (x->x[3]).(data), 
-        mNumNodes, mNumNodes );
-    mMassMatrixLU = la.lu(mMassMatrix);
+    mMassMatrix = BlockDiagonal( massBlocks, massBlockSize, massBlockInds );
+    mMassMatrixLU = lu( mMassMatrix );
 
     return AgglomeratedDgMeshN( mP, mElements, mNumNodes, mMassMatrix, mMassMatrixLU, 
         mGaussQuadNodes, mGaussQuadWeights );
@@ -609,7 +609,9 @@ function AgglomeratedDgMeshN( mP, agg::Vector{Vector{Int64}},
     end
 
     # get mass matrix
-    data = Vector{Tuple{Int64, Int64, Float64}}(undef, 0);
+    massBlocks = Vector{Matrix{Float64}}( undef, length( mElements ) );
+    massBlockSize = mP + 1;
+    massBlockInds = zeros( massBlockSize, length( mElements ) );
 
     for el in mElements
         temp = zeros( length( el.mNodesInd ), length( el.mNodesInd ) );
@@ -621,14 +623,12 @@ function AgglomeratedDgMeshN( mP, agg::Vector{Vector{Int64}},
             end
         end
 
-        for (j, node2) in enumerate( el.mNodesInd ), (i, node1) in enumerate( el.mNodesInd ) 
-            push!(data, ( node1, node2, temp[i,j] ) );
-        end
+        massBlocks[el.mIndex] = temp;
+        massBlockInds[:, el.mIndex] = el.mNodesInd;
     end
 
-    mMassMatrix = sp.sparse( (x->x[1]).(data), (x->x[2]).(data), (x->x[3]).(data), 
-        mNumNodes, mNumNodes );
-    mMassMatrixLU = la.lu(mMassMatrix);
+    mMassMatrix = BlockDiagonal( massBlocks, massBlockSize, massBlockInds );
+    mMassMatrixLU = lu( mMassMatrix );
 
     return AgglomeratedDgMeshN( mP, mElements, mNumNodes, mMassMatrix, mMassMatrixLU, 
         mGaussQuadNodes, mGaussQuadWeights );

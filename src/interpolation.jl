@@ -260,7 +260,7 @@ function aggdg_aggdg_interpolation( coarseMesh::AgglomeratedDgMeshN,
     N = sp.sparse( (x->x[1]).(data), (x->x[2]).(data), (x->x[3]).(data), 
         fineMesh.mNumNodes, coarseMesh.mNumNodes );
 
-    return sp.sparse( fineMesh.mMassMatrixLU \ Array(N) );
+    return fineMesh.mMassMatrixLU \ N;
 end
 
 ############################################################################################
@@ -320,7 +320,7 @@ function aggdg_dg_interpolation2( aggMesh::Union{AgglomeratedDgMesh1, Agglomerat
     N = sp.sparse( (x->x[1]).(data), (x->x[2]).(data), (x->x[3]).(data), 
         baseMesh.mNumNodes, aggMesh.mNumNodes );
 
-    return sp.sparse( baseMesh.mMassMatrixLU \ Array(N) );
+    return baseMesh.mMassMatrixLU \ N;
 end
 
 ############################################################################################

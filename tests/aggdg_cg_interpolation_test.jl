@@ -49,7 +49,7 @@ L2 = aggmg.aggdg_cg_interpolation( aggMesh, baseMesh, mesh, 2 );
 baseA = aggmg.cg_stiffness( baseMesh, bdCond );
 
 aggG, aggD, aggC = aggmg.dg_flux_operators( aggMesh, baseMesh, bdCond, CDir );
-aggA = aggC - aggD * sp.sparse( Matrix(aggMesh.mMassMatrix) \ aggG );
+aggA = aggC - aggD * ( aggMesh.mMassMatrixLU \ aggG );
 
 ############################################################################################
 # test interpolation of solutions themselves

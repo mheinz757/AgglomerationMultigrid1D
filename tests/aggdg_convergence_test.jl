@@ -38,8 +38,8 @@ for (i, n) in enumerate(nVec)
     G, D, C = aggmg.dg_flux_operators( aggMesh, dgMesh, bdCond, CDir );
     f, r = aggmg.dg_flux_rhs( aggMesh, dgMesh, func, bdCond, CDir );
 
-    b = f - D * ( aggMesh.mMassMatrix \ r );
-    A = C - D * sp.sparse( Matrix( aggMesh.mMassMatrix ) \ G );
+    b = f - D * ( aggMesh.mMassMatrixLU \ r );
+    A = C - D * ( aggMesh.mMassMatrixLU \ G );
 
     # solve problem
     uDg = A \ b;

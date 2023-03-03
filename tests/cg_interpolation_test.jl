@@ -130,7 +130,7 @@ for el in highMesh.mElements
     end
 end
 
-uLowRestr = lowMesh.mMassMatrixLU \ (L' * ( highMesh.mMassMatrix * uHigh ))
+uLowRestr = lowMesh.mMassMatrixLU \ ( L' * ( highMesh.mMassMatrix * uHigh ) );
 
 l2ErrorReg = 0.0;
 l2ErrorRestr = 0.0;
