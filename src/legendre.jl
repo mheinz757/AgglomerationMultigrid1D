@@ -8,7 +8,8 @@ Evaluates all the Legendre polynomials up to degree `n` at a point `x`
 - `n`: highest degree of Legendre polynomial to evaluate
 
 # Outputs
-- `funVal::AbstractVector`: values of all the Legendre polynomials up to degree `n` at point `x`
+- `funVal::AbstractVector`: values of all the Legendre polynomials up to degree `n` at 
+    point `x`
 """
 function legendre_val( x::Real, n::Integer )
     if n == 0
@@ -27,15 +28,18 @@ end
 """
     legendre_val_and_deriv( x::Real, n::Integer )
 
-Evaluates values of all the Legendre polynomials up to degree `n` and their derivatives at a point `x`
+Evaluates values of all the Legendre polynomials up to degree `n` and their derivatives at 
+a point `x`
 
 # Arguments
 - `x`: point to evaluate at
 - `n`: highest degree of Legendre polynomial to evaluate
 
 # Outputs
--`funVal::AbstractVector`: values of all the Legendre polynomials up to degree `n` at point `x`
--`derivVal::AbstractVector`: values of the derivative of all the Legendre polynomials up to degree `n` at point `x`
+- `funVal::AbstractVector`: values of all the Legendre polynomials up to degree `n` at 
+    point `x`
+- `derivVal::AbstractVector`: values of the derivative of all the Legendre polynomials up to 
+    degree `n` at point `x`
 """
 function legendre_val_and_deriv( x::Real, n::Integer )
     if n == 0

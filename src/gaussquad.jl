@@ -1,5 +1,5 @@
 """
-    function gauss_quad(p)
+    gauss_quad(p)
 
 Gaussian quadrature on [-1,1] for given degree of precision `p`
 """
