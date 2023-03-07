@@ -8,13 +8,13 @@ const SparseOrTri = Union{ sp.SparseMatrixCSCUnion, sp.SparseTriangular }
 const SparseMatOrVec = Union{ sp.SparseOrTri, sp.SparseVectorUnion, 
     SubArray{<:Any,<:Any,<:sp.AbstractSparseArray} }
 
-struct BlockDiagonal <: AbstractMatrix{Float64}
+struct BlockDiagonal # <: AbstractMatrix{Float64}
     mBlocks::Vector{Matrix{Float64}}
     mBlockSize::Int64
     mBlockInds::Matrix{Int64}
 end
 
-struct BlockDiagonalLU <: la.Factorization{Float64}
+struct BlockDiagonalLU # <: la.Factorization{Float64}
     mBlocksLU::Vector{la.LU{Float64, Matrix{Float64}}}
     mBlockSize::Int64
     mBlockInds::Matrix{Int64}
@@ -107,7 +107,7 @@ end
 function Matrix(A::BlockDiagonal)
     B = zeros( size(A) );
     for (i, block) in enumerate(A.mBlocks)
-        B[ mBlockInds[:,i], mBlockInds[:,i] ] = block;
+        B[ A.mBlockInds[:,i], A.mBlockInds[:,i] ] = block;
     end
     
     return B;
@@ -128,7 +128,7 @@ function sparse(A::BlockDiagonal)
         size(A,1), size(A,2) );
 end
 
-# show(io::IO, A::BlockDiagonal) = show(io::IO, Array(A));
+# show(io::IO, A::BlockDiagonal) = show(io::IO, sp.sparse(A));
 
 ############################################################################################
 # Linear Algebra for BlockDiagonal
